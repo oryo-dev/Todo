@@ -128,9 +128,9 @@ class ViewController: UIViewController {
             assignToLoginSigninAddView()
             changeIsHiddenAndIsEnabled(false)
             todos = []
-            actionSheet("ログアウトしました")
+            alert("ログアウトしました")
         } catch {
-            actionSheet("ログアウトできませんでした")
+            alert("ログアウトできませんでした")
         }
         activityIndicatorView.stopAnimating()
     }
@@ -149,6 +149,7 @@ class ViewController: UIViewController {
         } else {
             loginSigninAdd.toggle()
             assignToLoginSigninAddView()
+            blankCheck()
         }
     }
     
@@ -171,12 +172,12 @@ class ViewController: UIViewController {
             ] as [String : Any]
             Firestore.firestore().collection(uid).document(data["id"] as! String).setData(data) { error in
                 if error != nil {
-                    self.actionSheet("データを追加できませんでした")
+                    self.alert("データを追加できませんでした")
                     self.activityIndicatorView.stopAnimating()
                     return
                 }
                 self.getTodos()
-                self.actionSheet("データを追加しました")
+                self.alert("データを追加しました")
                 self.title = self.email
                 self.emailTodoTextField.text = ""
                 self.changeIsHiddenAndIsEnabled(true)
@@ -207,11 +208,11 @@ class ViewController: UIViewController {
     
     func loginSignin(_ email: String, _ error: Error?) {
         if error != nil {
-            actionSheet(loginSigninAdd == .login ? "ログインできませんでした" : "新規登録できませんでした")
+            alert(loginSigninAdd == .login ? "ログインできませんでした" : "新規登録できませんでした")
             activityIndicatorView.stopAnimating()
             return
         }
-        actionSheet(loginSigninAdd == .login ? "ログインしました" : "新規登録しました")
+        alert(loginSigninAdd == .login ? "ログインしました" : "新規登録しました")
         title = email
         emailTodoTextField.text = ""
         passwordTextField.text = ""
@@ -220,8 +221,8 @@ class ViewController: UIViewController {
         activityIndicatorView.stopAnimating()
     }
     
-    func actionSheet(_ title: String) {
-        alertController = UIAlertController(title: title, message: nil, preferredStyle: .actionSheet)
+    func alert(_ title: String) {
+        alertController = UIAlertController(title: title, message: nil, preferredStyle: .alert)
         present(alertController!, animated: true)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.alertController!.dismiss(animated: true)
@@ -237,7 +238,7 @@ class ViewController: UIViewController {
     func getTodos() {
         Firestore.firestore().collection(self.uid).getDocuments { snapshot, error in
             if error != nil {
-                self.actionSheet("データを取得できませんでした")
+                self.alert("データを取得できませんでした")
                 self.activityIndicatorView.stopAnimating()
                 return
             }
@@ -272,12 +273,12 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
             activityIndicatorView.startAnimating()
             Firestore.firestore().collection(uid).document(todos[indexPath.row].id).delete() { error in
                 if error != nil {
-                    self.actionSheet("データを削除できませんでした")
+                    self.alert("データを削除できませんでした")
                     self.activityIndicatorView.stopAnimating()
                     return
                 }
                 self.getTodos()
-                self.actionSheet("データを削除しました")
+                self.alert("データを削除しました")
                 self.activityIndicatorView.stopAnimating()
             }
         }
@@ -305,6 +306,10 @@ extension ViewController: UITextFieldDelegate {
     }
     
     func textFieldDidChangeSelection(_ textField: UITextField) {
+        blankCheck()
+    }
+    
+    func blankCheck() {
         guard let emailTodo = emailTodoTextField.text else { return }
         guard let password = passwordTextField.text else { return }
         guard let confirmPassword = confirmPasswordTextField.text else { return }
